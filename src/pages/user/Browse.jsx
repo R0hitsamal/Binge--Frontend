@@ -1,48 +1,73 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { videoAPI } from '../../utils/api';
-import VideoCard from '../../components/common/VideoCard';
-import './Browse.css';
+import React, { useState, useEffect, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
+import { videoAPI } from "../../utils/api";
+import VideoCard from "../../components/common/VideoCard";
+import "./Browse.css";
 
-const CATEGORIES = ['All', 'Action', 'Drama', 'Comedy', 'Thriller', 'Documentary', 'Sci-Fi', 'Horror', 'Romance', "Sports"];
+const CATEGORIES = [
+  "All",
+  "Action",
+  "Drama",
+  "Comedy",
+  "Thriller",
+  "Documentary",
+  "Sci-Fi",
+  "Horror",
+  "Romance",
+  "Sports",
+];
 
 const SORT_OPTIONS = [
-  { value: 'newest', label: 'Newest' },
-  { value: 'popular', label: 'Most Viewed' },
-  { value: 'liked', label: 'Most Liked' },
+  { value: "newest", label: "Newest" },
+  { value: "popular", label: "Most Viewed" },
+  { value: "liked", label: "Most Liked" },
 ];
 
 const Browse = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [videos, setVideos]     = useState([]);
-  const [loading, setLoading]   = useState(true);
-  const [search, setSearch]     = useState(searchParams.get('search') || '');
-  const [category, setCategory] = useState(searchParams.get('category') || 'All');
-  const [sort, setSort]         = useState('newest');
+  const [videos, setVideos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState(searchParams.get("search") || "");
+  const [category, setCategory] = useState(
+    searchParams.get("category") || "All",
+  );
+  const [sort, setSort] = useState("newest");
   const [inputVal, setInputVal] = useState(search);
+
+  // Sync state with URL params (Fix Navbar search second time issue)
+  useEffect(() => {
+    const s = searchParams.get("search") || "";
+    const c = searchParams.get("category") || "All";
+    setSearch(s);
+    setCategory(c);
+  }, [searchParams]);
 
   const fetchVideos = useCallback(async () => {
     setLoading(true);
     try {
       const params = {};
       if (search) params.search = search;
-      if (category && category !== 'All') params.category = category;
-      if (sort)   params.sort = sort;
+      if (category && category !== "All") params.category = category;
+      if (sort) params.sort = sort;
       const { data } = await videoAPI.getAll(params);
       setVideos(data.videos || data || []);
     } catch {
       setVideos([]);
-    } finally { setLoading(false); }
+    } finally {
+      setLoading(false);
+    }
   }, [search, category, sort]);
 
-  useEffect(() => { fetchVideos(); }, [fetchVideos]);
+  useEffect(() => {
+    fetchVideos();
+  }, [fetchVideos]);
 
   const handleSearch = (e) => {
     e.preventDefault();
     setSearch(inputVal);
     const p = {};
     if (inputVal) p.search = inputVal;
-    if (category !== 'All') p.category = category;
+    if (category !== "All") p.category = category;
     setSearchParams(p);
   };
 
@@ -50,23 +75,25 @@ const Browse = () => {
     setCategory(cat);
     const p = {};
     if (search) p.search = search;
-    if (cat !== 'All') p.category = cat;
+    if (cat !== "All") p.category = cat;
     setSearchParams(p);
   };
 
   return (
     <div className="browse">
       <br />
-      <br /><br /><br />
+      <br />
+      <br />
+      <br />
 
       <div className="browse__container">
         {/* Filters Row */}
         <div className="browse__filters animate-fadeInUp delay-200">
           <div className="browse__categories">
-            {CATEGORIES.map(cat => (
+            {CATEGORIES.map((cat) => (
               <button
                 key={cat}
-                className={`browse__cat-btn ${category === cat ? 'browse__cat-btn--active' : ''}`}
+                className={`browse__cat-btn ${category === cat ? "browse__cat-btn--active" : ""}`}
                 onClick={() => handleCategory(cat)}
               >
                 {cat}
@@ -81,8 +108,10 @@ const Browse = () => {
               onChange={(e) => setSort(e.target.value)}
               className="browse__sort-select"
             >
-              {SORT_OPTIONS.map(o => (
-                <option key={o.value} value={o.value}>{o.label}</option>
+              {SORT_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
               ))}
             </select>
           </div>
@@ -92,19 +121,76 @@ const Browse = () => {
         <div className="browse__results-info">
           {!loading && (
             <span>
-              {videos.length} video{videos.length !== 1 ? 's' : ''}
-              {search && <> for "<strong>{search}</strong>"</>}
-              {category !== 'All' && <> in <strong>{category}</strong></>}
+              {videos.length} video{videos.length !== 1 ? "s" : ""}
+              {search && (
+                <>
+                  {" "}
+                  for "<strong>{search}</strong>"
+                </>
+              )}
+              {category !== "All" && (
+                <>
+                  {" "}
+                  in <strong>{category}</strong>
+                </>
+              )}
             </span>
           )}
         </div>
+        <form
+          className="navbar__search navbar__search_mobile"
+          onSubmit={handleSearch}
+        >
+          <div className="navbar__search-wrap">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <path d="m21 21-4.35-4.35" />
+            </svg>
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search videos..."
+              className="navbar__search-input"
+            />
+            <svg
+            className="search_arrow"
+              width="34"
+              height="34"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <path d="M5 12h14" />
+              <path d="m13 5 7 7-7 7" />
+            </svg>
+          </div>
+        </form><br />
 
         {/* Grid */}
         {loading ? (
           <div className="grid-videos">
-            {Array(12).fill(0).map((_, i) => (
-              <div key={i} className="skeleton" style={{ height: 280, borderRadius: 'var(--radius-lg)', animationDelay: `${i*0.04}s` }} />
-            ))}
+            {Array(12)
+              .fill(0)
+              .map((_, i) => (
+                <div
+                  key={i}
+                  className="skeleton"
+                  style={{
+                    height: 280,
+                    borderRadius: "var(--radius-lg)",
+                    animationDelay: `${i * 0.04}s`,
+                  }}
+                />
+              ))}
           </div>
         ) : videos.length > 0 ? (
           <div className="grid-videos">
@@ -121,7 +207,15 @@ const Browse = () => {
             <div className="browse__empty-icon">🎬</div>
             <h3>No videos found</h3>
             <p>Try a different search term or category</p>
-            <button className="btn-secondary" onClick={() => { setSearch(''); setInputVal(''); setCategory('All'); setSearchParams({}); }}>
+            <button
+              className="btn-secondary"
+              onClick={() => {
+                setSearch("");
+                setInputVal("");
+                setCategory("All");
+                setSearchParams({});
+              }}
+            >
               Clear Filters
             </button>
           </div>

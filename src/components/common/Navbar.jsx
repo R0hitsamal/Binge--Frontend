@@ -1,44 +1,61 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import BingeLogo from "./BingeLogo";
 import "./Navbar.css";
 
 const Navbar = () => {
   const { user, isAuth, isAdmin, logout } = useAuth();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const location = useLocation();
+
   const [scrolled, setScrolled] = useState(false);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(searchParams.get("search") || "");
   const [menuOpen, setMenuOpen] = useState(false);
   const [dropdownOpen, setDropdown] = useState(false);
+
   const dropRef = useRef(null);
 
+  // Scroll effect
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 30);
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Close dropdown on outside click
   useEffect(() => {
     const close = (e) => {
-      if (dropRef.current && !dropRef.current.contains(e.target))
+      if (dropRef.current && !dropRef.current.contains(e.target)) {
         setDropdown(false);
+      }
     };
     document.addEventListener("mousedown", close);
     return () => document.removeEventListener("mousedown", close);
   }, []);
 
+  // Close mobile menu on route change
   useEffect(() => {
     setMenuOpen(false);
   }, [location]);
 
+  // 🔥 Sync input with URL
+  useEffect(() => {
+    setSearch(searchParams.get("search") || "");
+  }, [searchParams]);
+
+  // Submit search
   const handleSearch = (e) => {
     e.preventDefault();
-    if (search.trim()) {
-      navigate(`/browse?search=${encodeURIComponent(search.trim())}`);
-      setSearch("");
+    const trimmed = search.trim();
+
+    if (!trimmed) {
+      navigate("/browse");
+      return;
     }
+
+    navigate(`/browse?search=${encodeURIComponent(trimmed)}`);
   };
 
   const handleLogout = () => {
@@ -135,7 +152,18 @@ const Navbar = () => {
             <input
               type="text"
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value;
+                setSearch(val);
+                const trimmed = val.trim();
+                if (!trimmed) {
+                  navigate("/browse", { replace: true });
+                } else {
+                  navigate(`/browse?search=${encodeURIComponent(trimmed)}`, {
+                    replace: true,
+                  });
+                }
+              }}
               placeholder="Search videos..."
               className="navbar__search-input"
             />
