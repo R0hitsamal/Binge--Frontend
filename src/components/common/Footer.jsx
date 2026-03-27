@@ -24,6 +24,11 @@ const Footer = () => (
 
         <div className="footer__links-group">
           <h4 className="footer__group-title">Admin</h4>
+          <div style={{display:'flex', gap:4, alignItems : "center"}}>
+         
+            <a href="https://rohitkumarsamal.vercel.app/" target='blank' className="footer__link"> <p >Rohit Kumar Samal</p></a>
+          </div>
+          <h4 className="footer__group-title">Admin Access </h4>
           <Link to="/admin" className="footer__link">Dashboard</Link>
           <Link to="/admin/upload" className="footer__link">Upload Video</Link>
           <Link to="/admin/analytics" className="footer__link">Analytics</Link>
